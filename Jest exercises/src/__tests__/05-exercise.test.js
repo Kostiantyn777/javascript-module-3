@@ -26,7 +26,7 @@ describe("05-exercises", () => {
 
     // Write the assertion
     let resultArray = addItemToList(prevList, newItem);
-    expect(resultArray).toContain(newItem);
+    expect(resultArray).toEqual([1, 2, 3, 4, 5]);
   });
 
   test("addUser adds a new user to the list of users", () => {
@@ -48,10 +48,9 @@ describe("05-exercises", () => {
      */
 
     // Write the assertion
-    let resultArrayOfObjects = addUser(users, expectedUser);
-    expect(resultArrayOfObjects).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: expectedUser })])
-    );
+    let resultArrayOfObjects = addUser(users, "maria");
+
+    expect(resultArrayOfObjects).toContainEqual(expectedUser);
   });
 
   test("getWeekDays returns an array of week days", () => {

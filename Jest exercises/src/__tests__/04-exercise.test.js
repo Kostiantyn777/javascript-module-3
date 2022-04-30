@@ -65,6 +65,6 @@ describe("04-exercises", () => {
     // Write the assertions
     let result = generateRandomNumberFrom1to10();
     expect(result).toBeGreaterThan(0);
-    expect(result).toBeLessThan(10);
+    expect(result).toBeLessThan(11);
   });
 });
