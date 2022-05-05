@@ -1,75 +1,179 @@
-const root = document.getElementById("root");
+const root = document.querySelector("#root");
 
-const headerSection = document.createElement("div");
-headerSection.id = "header";
-headerSection.innerHTML = "<h1>Rick and Morty API</h1>";
-root.appendChild(headerSection);
+// Declared variables for HTML elements
+let headerContainer,
+  title,
+  bodyContainer,
+  sidebar,
+  main,
+  loadMoreButton,
+  titleElement,
+  dateAndEpisodeName,
+  imagesContainer,
+  divContainer;
 
-const sidebar = document.createElement("div");
-sidebar.id = "sidebar";
-root.appendChild(sidebar);
+// Variable I will use to change the page
+let page = 1;
+let loadFirstEpisode = true;
 
-const main = document.createElement("div");
-main.id = "main";
-root.appendChild(main);
-
-const episodes = document.createElement("div");
-episodes.id = "episodes";
-sidebar.appendChild(episodes);
-
-let moreEpisodes = document.createElement("button");
-moreEpisodes.innerText = "Load more";
-moreEpisodes.id = "loadMore";
-sidebar.appendChild(moreEpisodes);
-
-loadEpisodes();
-
-function loadEpisodes(url) {
-  fetch(url || "https://rickandmortyapi.com/api/episode")
-    .then((res) => res.json())
-    .then(showEpisodes);
+// Function to create a NEW ELEMENT, append it to the PARENT ELEMENT, add ID and CLASSNAME
+function createAndAppendElement(element, parentElement, id, className) {
+  const newElement = document.createElement(element);
+  parentElement.appendChild(newElement);
+  if (id) newElement.setAttribute("id", id);
+  if (className) newElement.classList.add(className);
+  return newElement;
 }
 
-function showEpisodes(episodes) {
-  episodes.results.forEach(addEpisodeToSidebar);
-  if (episodes.info.next) {
-    moreEpisodes.onclick = () => loadEpisodes(episodes.info.next);
-  } else {
-    moreEpisodes.classList.add("hidden");
-  }
+// Function to create initial HTML structure
+function createInitialHTMLStructure() {
+  headerContainer = createAndAppendElement("div", root, "header", "header");
+  title = createAndAppendElement(
+    "h1",
+    headerContainer,
+    "projectTitle",
+    "project-title"
+  );
+  title.innerHTML = "Rick and Morty API";
+  console.log("painting header");
+  bodyContainer = createAndAppendElement(
+    "div",
+    root,
+    "bodyContainer",
+    "body-container"
+  );
+  console.log("painting body container");
+  sidebar = createAndAppendElement("div", bodyContainer, "sidebar", "sidebar");
+  console.log("painting sidebar");
+  main = createAndAppendElement("div", bodyContainer, "main", "main");
+  console.log("painting main area");
 }
 
-function addEpisodeToSidebar(episode) {
-  const episodeNode = document.createElement("div");
-  episodeNode.innerText = episode.name;
-  episodeNode.classList.add("episode");
-  episodeNode.addEventListener("click", () => showEpisode(episode));
-  episodes.appendChild(episodeNode);
-}
-
-function showEpisode(episode) {
-  main.innerHTML =
-    `<h2 class="episodeTitle">${episode.name}</h2>` +
-    `<p class="episodeInfo">${episode.air_date} | ${episode.episode}</p>` +
-    `<div id="episodeCharacters"></div>`;
-  const episodeCharacters = document.getElementById("episodeCharacters");
-  episode.characters.forEach((characterUrl) =>
-    episodeCharacters.appendChild(buildCharacter(characterUrl))
+// Get Promise from API using fetch() method
+async function getEpisodes(pageNum) {
+  return fetch(`https://rickandmortyapi.com/api/episode?page=${pageNum}`).then(
+    (data) => data.json()
   );
 }
+// Render the SIDEBAR
+async function initialRenderSidebar() {
+  // Resolved promise saved in episodes variable
+  const episodes = await getEpisodes(1);
 
-function buildCharacter(characterUrl) {
-  const node = document.createElement("div");
-  node.classList.add("character");
-  fetch(characterUrl)
-    .then((res) => res.json())
-    .then((character) => showCharacter(character, node));
-  return node;
+  // Pass Episodes Object and true as arguments
+  renderEpisodesList(episodes, true);
+  createLoadEpisodesButton();
+  console.log("populating sidebar");
 }
 
-function showCharacter(character, characterNode) {
-  const image = document.createElement("img");
-  image.src = character.image;
-  image.classList.add("characterImage");
-  characterNode.appendChild(image);
+// Render Episodes List
+function renderEpisodesList(episodesArray, isInitialRender) {
+  const unorderedList = document.createElement("ul");
+  if (isInitialRender) {
+    sidebar.appendChild(unorderedList);
+  } else {
+    // Inserts unorderedList before loadMoreButton
+    loadMoreButton.before(unorderedList);
+  }
+
+  // Loop through list of episodes
+  episodesArray.results.forEach((object) => {
+    const li = createAndAppendElement("li", unorderedList);
+    const a = createAndAppendElement("a", li);
+    a.innerHTML = `Episode ${object.id}`;
+    a.href = "#";
+    a.addEventListener("click", (event) => {
+      renderEpisode(object.id);
+      event.preventDefault();
+    });
+  });
+  page = page + 1;
 }
+
+// Create Button and add Event Listener to it
+function createLoadEpisodesButton() {
+  loadMoreButton = createAndAppendElement(
+    "button",
+    sidebar,
+    "loadMoreButton",
+    "load-more-button"
+  );
+  loadMoreButton.innerHTML = "Load Episodes";
+  loadMoreButton.addEventListener("click", renderMoreEpisodes);
+}
+
+async function renderMoreEpisodes() {
+  const newEpisodes = await getEpisodes(page);
+  renderEpisodesList(newEpisodes, false);
+}
+//Render episode depends on ID parameter
+async function renderEpisode(id) {
+  const firstPromise = await fetch(
+    `https://rickandmortyapi.com/api/episode/${id}`
+  );
+
+  const firstEpisode = await firstPromise.json();
+  updateMainArea(firstEpisode);
+}
+
+function updateMainArea(episode) {
+  // this code won't execute on first load
+  if (!loadFirstEpisode) {
+    imagesContainer.remove();
+    titleElement.remove();
+    dateAndEpisodeName.remove();
+    divContainer.remove();
+  }
+
+  divContainer = createAndAppendElement(
+    "div",
+    main,
+    undefined,
+    "episode-title-container"
+  );
+  console.log(episode);
+  titleElement = createAndAppendElement("h2", divContainer);
+  titleElement.innerText = `${episode.name}`;
+  dateAndEpisodeName = createAndAppendElement("h3", divContainer);
+  dateAndEpisodeName.innerText = `${episode.air_date} | ${episode.episode}`;
+  imagesContainer = createAndAppendElement(
+    "div",
+    main,
+    undefined,
+    "image-container"
+  );
+
+  //Render characters
+  episode.characters.forEach((character) => {
+    fetch(character)
+      .then((data) => data.json())
+      .then((data) => {
+        const characterContainer = createAndAppendElement(
+          "div",
+          imagesContainer
+        );
+
+        const image = createAndAppendElement(
+          "img",
+          characterContainer,
+          "character-image"
+        );
+        image.src = data.image;
+
+        const nameOfCharacter = createAndAppendElement("p", characterContainer);
+        nameOfCharacter.innerHTML = `<strong>${data.name}</strong>`;
+        const speciesAndStatus = createAndAppendElement(
+          "p",
+          characterContainer
+        );
+        speciesAndStatus.innerHTML = `${data.species} | ${data.status}`;
+      });
+  });
+  if (loadFirstEpisode) loadFirstEpisode = false;
+}
+
+createInitialHTMLStructure();
+initialRenderSidebar();
+
+// Render first episode
+renderEpisode(1);
