@@ -8,14 +8,15 @@
   background-color: black;
 }
 a {
-  color: #abf39e;
+  color: #66fcf1;
 }
 #main {
-  color: white;
+  color: #fee715ff;
 }
 
 #bodyContainer {
   display: flex;
+  margin-bottom: 3rem;
 }
 #projectTitle {
   padding: 1.5rem;
@@ -32,11 +33,16 @@ a {
 }
 .image-container #character-image {
   margin-top: 1.2rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.6rem;
 }
 .episode-title-container {
   padding-top: 13px;
 }
+.episode-title-container h2 {
+  color: #f94444;
+  margin-bottom: 0.5rem;
+}
+
 .sidebar {
   margin-right: 1rem;
 }
@@ -97,10 +103,6 @@ a {
 #new-character-container ul {
   display: flex;
   flex-wrap: wrap;
-  margin-top: 4rem;
-  margin-right: 1rem;
-  padding-top: 4rem;
-  border-top: 1px solid lightseagreen;
 }
 #new-character-container ul li {
   flex: 1 0 21%;
@@ -113,4 +115,16 @@ a {
 }
 #new-character-container ul li p {
   color: #f94444;
+  margin-top: 0.4rem;
+}
+#div-for-character {
+  margin-top: 4rem;
+  margin-right: 1rem;
+  padding-top: 4rem;
+  border-top: 1px solid #fcf951ff;
+  display: block;
+  width: 100%;
+}
+#species-status {
+  margin-top: 0.4rem;
 }

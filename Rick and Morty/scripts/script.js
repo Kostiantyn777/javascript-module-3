@@ -39,18 +39,17 @@ function createInitialHTMLStructure() {
     "project-title"
   );
   title.innerHTML = "RICK AND MORTY API";
-  console.log("painting header");
+
   bodyContainer = createAndAppendElement(
     "div",
     root,
     "bodyContainer",
     "body-container"
   );
-  console.log("painting body container");
+
   sidebar = createAndAppendElement("div", bodyContainer, "sidebar", "sidebar");
-  console.log("painting sidebar");
+
   main = createAndAppendElement("div", bodyContainer, "main", "main");
-  console.log("painting main area");
 }
 
 // Get Promise from API using fetch() method
@@ -77,7 +76,6 @@ async function initialRenderSidebar() {
   // Pass Episodes Object and true as arguments
   renderEpisodesList(episodes, true);
   createLoadEpisodesButton();
-  console.log("populating sidebar");
 }
 
 // Render Episodes List
@@ -217,9 +215,14 @@ function updateMainArea(episode) {
           infoOfNewCharacter.innerHTML = `${characterData.species} | ${characterData.status} | ${characterData.gender} | ${characterData.origin.name}`;
 
           //Show  the list of episodes in which this particular character appears.
+          const divForCharacter = createAndAppendElement(
+            "div",
+            newCharacterContainer,
+            "div-for-character"
+          );
           const characterUnorderedEpisodeList = createAndAppendElement(
             "ul",
-            newCharacterContainer
+            divForCharacter
           );
           //console.log(characterData);
           characterData.episode.forEach((episodeElement) => {
@@ -259,7 +262,8 @@ function updateMainArea(episode) {
         nameOfCharacter.innerHTML = `<strong>${data.name}</strong>`;
         const speciesAndStatus = createAndAppendElement(
           "p",
-          characterContainer
+          characterContainer,
+          "species-status"
         );
         speciesAndStatus.innerHTML = `${data.species} | ${data.status}`;
       });
