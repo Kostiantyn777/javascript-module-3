@@ -5,7 +5,13 @@
   box-sizing: border-box;
   font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
     "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
-  background-color: lightcyan;
+  background-color: black;
+}
+a {
+  color: #abf39e;
+}
+#main {
+  color: white;
 }
 
 #bodyContainer {
@@ -14,6 +20,7 @@
 #projectTitle {
   padding: 1.5rem;
   font-size: 1.2rem;
+  color: #f94444;
 }
 
 .image-container {
@@ -40,7 +47,6 @@
 .sidebar ul li a {
   display: block;
   padding: 13px;
-  color: rgb(24 68 34);
   font-size: 1rem;
 }
 
@@ -86,4 +92,25 @@
 }
 #name-of-new-character {
   margin: 1rem 0;
+}
+
+#new-character-container ul {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 4rem;
+  margin-right: 1rem;
+  padding-top: 4rem;
+  border-top: 1px solid lightseagreen;
+}
+#new-character-container ul li {
+  flex: 1 0 21%;
+  margin: 5px;
+  height: 50px;
+}
+#new-character-container ul li a {
+  text-decoration: none;
+  font-weight: bold;
+}
+#new-character-container ul li p {
+  color: #f94444;
 }

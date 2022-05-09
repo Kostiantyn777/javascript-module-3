@@ -38,7 +38,7 @@ function createInitialHTMLStructure() {
     "projectTitle",
     "project-title"
   );
-  title.innerHTML = "Rick and Morty API";
+  title.innerHTML = "RICK AND MORTY API";
   console.log("painting header");
   bodyContainer = createAndAppendElement(
     "div",
@@ -168,6 +168,7 @@ function updateMainArea(episode) {
   );
 
   //Render characters
+  //console.log(episode);
   episode.characters.forEach((character) => {
     fetch(character)
       .then((data) => data.json())
@@ -180,7 +181,6 @@ function updateMainArea(episode) {
         //Add addEventListener() to character container
         characterContainer.addEventListener("click", async () => {
           const characterData = await getCharacter(data.id);
-          console.log(characterData);
 
           //Created Html structure for New Character
           newCharacterContainer = createAndAppendElement(
@@ -215,6 +215,31 @@ function updateMainArea(episode) {
             "info-new-character"
           );
           infoOfNewCharacter.innerHTML = `${characterData.species} | ${characterData.status} | ${characterData.gender} | ${characterData.origin.name}`;
+
+          //Show  the list of episodes in which this particular character appears.
+          const characterUnorderedEpisodeList = createAndAppendElement(
+            "ul",
+            newCharacterContainer
+          );
+          //console.log(characterData);
+          characterData.episode.forEach((episodeElement) => {
+            fetch(episodeElement)
+              .then((data) => data.json())
+              .then((data) => {
+                const liEl = createAndAppendElement(
+                  "li",
+                  characterUnorderedEpisodeList
+                );
+                const aEl = createAndAppendElement("a", liEl);
+                aEl.innerHTML = `Episode ${data.id}`;
+                aEl.href = "#";
+                const pEl = createAndAppendElement("p", liEl);
+                pEl.innerHTML = data.episode;
+                aEl.addEventListener("click", () => {
+                  renderEpisode(data.id);
+                });
+              });
+          });
 
           if (newCharacterContainer) {
             imagesContainer.remove();
