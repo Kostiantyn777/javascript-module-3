@@ -10,11 +10,15 @@ let headerContainer,
   titleElement,
   dateAndEpisodeName,
   imagesContainer,
-  divContainer;
+  divContainer,
+  newCharacterContainer;
 
 // Variable I will use to change the page
 let page = 1;
+//Variable I use to render first episode
 let loadFirstEpisode = true;
+
+let showCharacter = false;
 
 // Function to create a NEW ELEMENT, append it to the PARENT ELEMENT, add ID and CLASSNAME
 function createAndAppendElement(element, parentElement, id, className) {
@@ -55,6 +59,16 @@ async function getEpisodes(pageNum) {
     (data) => data.json()
   );
 }
+
+//Get Promise of characters from API
+async function getCharacter(id) {
+  const promise = await fetch(
+    `https://rickandmortyapi.com/api/character/${id}`
+  );
+  const character = await promise.json();
+  return character;
+}
+
 // Render the SIDEBAR
 async function initialRenderSidebar() {
   // Resolved promise saved in episodes variable
@@ -68,7 +82,9 @@ async function initialRenderSidebar() {
 
 // Render Episodes List
 function renderEpisodesList(episodesArray, isInitialRender) {
+  //Added Unordered list where I will add all my <li>
   const unorderedList = document.createElement("ul");
+
   if (isInitialRender) {
     sidebar.appendChild(unorderedList);
   } else {
@@ -115,15 +131,23 @@ async function renderEpisode(id) {
   const firstEpisode = await firstPromise.json();
   updateMainArea(firstEpisode);
 }
+// Render character depends on ID parameter
 
 function updateMainArea(episode) {
   // this code won't execute on first load
+
   if (!loadFirstEpisode) {
     imagesContainer.remove();
-    titleElement.remove();
-    dateAndEpisodeName.remove();
+    //titleElement.remove();
+    //dateAndEpisodeName.remove();
     divContainer.remove();
   }
+  // Will remove Character Node from the DOM
+  if (showCharacter) {
+    document.querySelector("#new-character-container").remove();
+  }
+
+  showCharacter = false;
 
   divContainer = createAndAppendElement(
     "div",
@@ -131,7 +155,7 @@ function updateMainArea(episode) {
     undefined,
     "episode-title-container"
   );
-  console.log(episode);
+
   titleElement = createAndAppendElement("h2", divContainer);
   titleElement.innerText = `${episode.name}`;
   dateAndEpisodeName = createAndAppendElement("h3", divContainer);
@@ -152,6 +176,52 @@ function updateMainArea(episode) {
           "div",
           imagesContainer
         );
+
+        //Add addEventListener() to character container
+        characterContainer.addEventListener("click", async () => {
+          const characterData = await getCharacter(data.id);
+          console.log(characterData);
+
+          //Created Html structure for New Character
+          newCharacterContainer = createAndAppendElement(
+            "div",
+            main,
+            "new-character-container"
+          );
+
+          const imageOfNewCharacter = createAndAppendElement(
+            "img",
+            newCharacterContainer,
+            "image-of-new-character"
+          );
+          imageOfNewCharacter.src = characterData.image;
+
+          const nameAndInfoContainer = createAndAppendElement(
+            "div",
+            newCharacterContainer,
+            "name-and-info-container"
+          );
+
+          const nameOfNewCharacter = createAndAppendElement(
+            "h2",
+            nameAndInfoContainer,
+            "name-of-new-character"
+          );
+          nameOfNewCharacter.innerText = characterData.name;
+
+          const infoOfNewCharacter = createAndAppendElement(
+            "h4",
+            nameAndInfoContainer,
+            "info-new-character"
+          );
+          infoOfNewCharacter.innerHTML = `${characterData.species} | ${characterData.status} | ${characterData.gender} | ${characterData.origin.name}`;
+
+          if (newCharacterContainer) {
+            imagesContainer.remove();
+            divContainer.remove();
+          }
+          showCharacter = true;
+        });
 
         const image = createAndAppendElement(
           "img",
