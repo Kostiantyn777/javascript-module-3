@@ -17,7 +17,6 @@ let headerContainer,
 let page = 1;
 //Variable I use to render first episode
 let loadFirstEpisode = true;
-
 let showCharacter = false;
 
 // Function to create a NEW ELEMENT, append it to the PARENT ELEMENT, add ID and CLASSNAME
@@ -48,7 +47,6 @@ function createInitialHTMLStructure() {
   );
 
   sidebar = createAndAppendElement("div", bodyContainer, "sidebar", "sidebar");
-
   main = createAndAppendElement("div", bodyContainer, "main", "main");
 }
 
@@ -72,7 +70,7 @@ async function getCharacter(id) {
 async function initialRenderSidebar() {
   // Resolved promise saved in episodes variable
   const episodes = await getEpisodes(1);
-
+  
   // Pass Episodes Object and true as arguments
   renderEpisodesList(episodes, true);
   createLoadEpisodesButton();
@@ -89,7 +87,6 @@ function renderEpisodesList(episodesArray, isInitialRender) {
     // Inserts unorderedList before loadMoreButton
     loadMoreButton.before(unorderedList);
   }
-
   // Loop through list of episodes
   episodesArray.results.forEach((object) => {
     const li = createAndAppendElement("li", unorderedList);
@@ -104,7 +101,7 @@ function renderEpisodesList(episodesArray, isInitialRender) {
   page = page + 1;
 }
 
-// Create Button and add Event Listener to it
+// Create Button and addEventListener to it
 function createLoadEpisodesButton() {
   loadMoreButton = createAndAppendElement(
     "button",
@@ -129,11 +126,22 @@ async function renderEpisode(id) {
   const firstEpisode = await firstPromise.json();
   updateMainArea(firstEpisode);
 }
-// Render character depends on ID parameter
 
+async function getEpisodesofCharacter(episodeElement) {
+  const promise = await fetch(episodeElement);
+  const promiseData = await promise.json();
+  return promiseData;
+}
+
+async function getCharacterFromEpisode(character) {
+  const promiseOfCharacter = await fetch(character);
+  const promiseDataOfCharacter = await promiseOfCharacter.json();
+  return promiseDataOfCharacter;
+}
+
+// Render character depends on ID parameter
 function updateMainArea(episode) {
   // this code won't execute on first load
-
   if (!loadFirstEpisode) {
     imagesContainer.remove();
     //titleElement.remove();
@@ -167,107 +175,99 @@ function updateMainArea(episode) {
 
   //Render characters
   //console.log(episode);
-  episode.characters.forEach((character) => {
-    fetch(character)
-      .then((data) => data.json())
-      .then((data) => {
-        const characterContainer = createAndAppendElement(
-          "div",
-          imagesContainer
+  episode.characters.forEach(async (character) => {
+    const data = await getCharacterFromEpisode(character);
+
+    const characterContainer = createAndAppendElement("div", imagesContainer);
+
+    //Add addEventListener() to character container
+    characterContainer.addEventListener("click", async () => {
+      const characterData = await getCharacter(data.id);
+
+      //Created Html structure for New Character
+      newCharacterContainer = createAndAppendElement(
+        "div",
+        main,
+        "new-character-container"
+      );
+
+      const imageOfNewCharacter = createAndAppendElement(
+        "img",
+        newCharacterContainer,
+        "image-of-new-character"
+      );
+      imageOfNewCharacter.src = characterData.image;
+
+      const nameAndInfoContainer = createAndAppendElement(
+        "div",
+        newCharacterContainer,
+        "name-and-info-container"
+      );
+
+      const nameOfNewCharacter = createAndAppendElement(
+        "h2",
+        nameAndInfoContainer,
+        "name-of-new-character"
+      );
+      nameOfNewCharacter.innerText = characterData.name;
+
+      const infoOfNewCharacter = createAndAppendElement(
+        "h4",
+        nameAndInfoContainer,
+        "info-new-character"
+      );
+      infoOfNewCharacter.innerHTML = `${characterData.species} | ${characterData.status} | ${characterData.gender} | ${characterData.origin.name}`;
+
+      //Show  the list of episodes in which this particular character appears.
+      const divForCharacter = createAndAppendElement(
+        "div",
+        newCharacterContainer,
+        "div-for-character"
+      );
+      const characterUnorderedEpisodeList = createAndAppendElement(
+        "ul",
+        divForCharacter
+      );
+      //console.log(characterData);
+      characterData.episode.forEach(async (episodeElement) => {
+        const data = await getEpisodesofCharacter(episodeElement);
+        const liEl = createAndAppendElement(
+          "li",
+          characterUnorderedEpisodeList
         );
-
-        //Add addEventListener() to character container
-        characterContainer.addEventListener("click", async () => {
-          const characterData = await getCharacter(data.id);
-
-          //Created Html structure for New Character
-          newCharacterContainer = createAndAppendElement(
-            "div",
-            main,
-            "new-character-container"
-          );
-
-          const imageOfNewCharacter = createAndAppendElement(
-            "img",
-            newCharacterContainer,
-            "image-of-new-character"
-          );
-          imageOfNewCharacter.src = characterData.image;
-
-          const nameAndInfoContainer = createAndAppendElement(
-            "div",
-            newCharacterContainer,
-            "name-and-info-container"
-          );
-
-          const nameOfNewCharacter = createAndAppendElement(
-            "h2",
-            nameAndInfoContainer,
-            "name-of-new-character"
-          );
-          nameOfNewCharacter.innerText = characterData.name;
-
-          const infoOfNewCharacter = createAndAppendElement(
-            "h4",
-            nameAndInfoContainer,
-            "info-new-character"
-          );
-          infoOfNewCharacter.innerHTML = `${characterData.species} | ${characterData.status} | ${characterData.gender} | ${characterData.origin.name}`;
-
-          //Show  the list of episodes in which this particular character appears.
-          const divForCharacter = createAndAppendElement(
-            "div",
-            newCharacterContainer,
-            "div-for-character"
-          );
-          const characterUnorderedEpisodeList = createAndAppendElement(
-            "ul",
-            divForCharacter
-          );
-          //console.log(characterData);
-          characterData.episode.forEach((episodeElement) => {
-            fetch(episodeElement)
-              .then((data) => data.json())
-              .then((data) => {
-                const liEl = createAndAppendElement(
-                  "li",
-                  characterUnorderedEpisodeList
-                );
-                const aEl = createAndAppendElement("a", liEl);
-                aEl.innerHTML = `Episode ${data.id}`;
-                aEl.href = "#";
-                const pEl = createAndAppendElement("p", liEl);
-                pEl.innerHTML = data.episode;
-                aEl.addEventListener("click", () => {
-                  renderEpisode(data.id);
-                });
-              });
-          });
-
-          if (newCharacterContainer) {
-            imagesContainer.remove();
-            divContainer.remove();
-          }
-          showCharacter = true;
+        const aEl = createAndAppendElement("a", liEl);
+        aEl.innerHTML = `Episode ${data.id}`;
+        aEl.href = "#";
+        const pEl = createAndAppendElement("p", liEl);
+        pEl.innerHTML = data.episode;
+        aEl.addEventListener("click", () => {
+          renderEpisode(data.id);
         });
-
-        const image = createAndAppendElement(
-          "img",
-          characterContainer,
-          "character-image"
-        );
-        image.src = data.image;
-
-        const nameOfCharacter = createAndAppendElement("p", characterContainer);
-        nameOfCharacter.innerHTML = `<strong>${data.name}</strong>`;
-        const speciesAndStatus = createAndAppendElement(
-          "p",
-          characterContainer,
-          "species-status"
-        );
-        speciesAndStatus.innerHTML = `${data.species} | ${data.status}`;
       });
+      if (newCharacterContainer) {
+        imagesContainer.remove();
+        divContainer.remove();
+      }
+      showCharacter = true;
+    });
+
+    const image = createAndAppendElement(
+      "img",
+      characterContainer,
+      "character-image"
+    );
+    image.src = data.image;
+
+    const nameOfCharacter = createAndAppendElement("p", characterContainer);
+    nameOfCharacter.innerHTML = `<strong>${data.name}</strong>`;
+    const speciesAndStatus = createAndAppendElement(
+      "p",
+      characterContainer,
+      "species-status"
+    );
+    speciesAndStatus.innerHTML = `${data.species} | ${data.status}`;
   });
+
   if (loadFirstEpisode) loadFirstEpisode = false;
 }
 
