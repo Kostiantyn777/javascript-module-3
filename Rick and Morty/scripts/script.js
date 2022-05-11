@@ -18,6 +18,7 @@ let page = 1;
 //Variable I use to render first episode
 let loadFirstEpisode = true;
 let showCharacter = false;
+let showCharacterLocation = false;
 
 // Function to create a NEW ELEMENT, append it to the PARENT ELEMENT, add ID and CLASSNAME
 function createAndAppendElement(element, parentElement, id, className) {
@@ -70,7 +71,7 @@ async function getCharacter(id) {
 async function initialRenderSidebar() {
   // Resolved promise saved in episodes variable
   const episodes = await getEpisodes(1);
-  
+
   // Pass Episodes Object and true as arguments
   renderEpisodesList(episodes, true);
   createLoadEpisodesButton();
@@ -139,6 +140,18 @@ async function getCharacterFromEpisode(character) {
   return promiseDataOfCharacter;
 }
 
+async function getResidentsListFromLocation(location) {
+  const promiseGetResidentsList = await fetch(location);
+  const promiseDataOfResidents = await promiseGetResidentsList.json();
+  return promiseDataOfResidents;
+}
+
+async function getLocation(location) {
+  const promiseOfLocation = await fetch(location);
+  const promiseDataOfLocation = await promiseOfLocation.json();
+  return promiseDataOfLocation;
+}
+
 // Render character depends on ID parameter
 function updateMainArea(episode) {
   // this code won't execute on first load
@@ -149,9 +162,11 @@ function updateMainArea(episode) {
     divContainer.remove();
   }
   // Will remove Character Node from the DOM
-  if (showCharacter) {
+  if (showCharacter && !showCharacterLocation) {
     document.querySelector("#new-character-container").remove();
   }
+
+  showCharacterLocation = false;
 
   showCharacter = false;
 
@@ -217,6 +232,74 @@ function updateMainArea(episode) {
         "info-new-character"
       );
       infoOfNewCharacter.innerHTML = `${characterData.species} | ${characterData.status} | ${characterData.gender} | ${characterData.origin.name}`;
+
+      // Create Button for looking for a location
+      const buttonLocation = createAndAppendElement(
+        "button",
+        nameAndInfoContainer,
+        "info-location-button"
+      );
+      buttonLocation.innerHTML = "Go To The Origin Location";
+
+      if (characterData.origin.name !== "unknown") {
+        buttonLocation.addEventListener("click", async () => {
+          document.querySelector("#new-character-container").remove();
+          const characterOrigin = await getLocation(characterData.origin.url);
+
+          divContainer = createAndAppendElement(
+            "div",
+            main,
+            undefined,
+            "episode-title-container"
+          );
+
+          titleElement = createAndAppendElement("h2", divContainer);
+          titleElement.innerText = `${characterOrigin.name}`;
+          dateAndEpisodeName = createAndAppendElement("h3", divContainer);
+          dateAndEpisodeName.innerText = `${characterOrigin.type} | ${characterOrigin.dimension}`;
+          imagesContainer = createAndAppendElement(
+            "div",
+            main,
+            undefined,
+            "image-container"
+          );
+
+          characterOrigin.residents.forEach(async (resident) => {
+            const data = await getResidentsListFromLocation(resident);
+
+            const characterContainer = createAndAppendElement(
+              "div",
+              imagesContainer
+            );
+            const image = createAndAppendElement(
+              "img",
+              characterContainer,
+              "character-image"
+            );
+            image.src = data.image;
+
+            const nameOfCharacter = createAndAppendElement(
+              "p",
+              characterContainer
+            );
+            nameOfCharacter.innerHTML = `<strong>${data.name}</strong>`;
+            const speciesAndStatus = createAndAppendElement(
+              "p",
+              characterContainer,
+              "species-status"
+            );
+            speciesAndStatus.innerHTML = `${data.species} | ${data.status}`;
+          });
+
+          showCharacterLocation = true;
+        });
+      }
+
+      if (characterData.origin.name === "unknown") {
+        buttonLocation.addEventListener("click", () => {
+          alert("I DON'T HAVE ORIGIN LOCATION");
+        });
+      }
 
       //Show  the list of episodes in which this particular character appears.
       const divForCharacter = createAndAppendElement(
