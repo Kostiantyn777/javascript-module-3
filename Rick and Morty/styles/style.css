@@ -31,6 +31,10 @@ a {
 .image-container div {
   flex-grow: 1;
 }
+#character-image,.image-container p:hover {
+  cursor: pointer;
+}
+
 .image-container #character-image {
   margin-top: 1.2rem;
   margin-bottom: 0.6rem;

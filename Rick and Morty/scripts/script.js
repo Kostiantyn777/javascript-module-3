@@ -19,6 +19,8 @@ let page = 1;
 let loadFirstEpisode = true;
 let showCharacter = false;
 let showCharacterLocation = false;
+let displayResident = false;
+let showResidentLocation = false;
 
 // Function to create a NEW ELEMENT, append it to the PARENT ELEMENT, add ID and CLASSNAME
 function createAndAppendElement(element, parentElement, id, className) {
@@ -157,9 +159,11 @@ function updateMainArea(episode) {
   // this code won't execute on first load
   if (!loadFirstEpisode) {
     imagesContainer.remove();
-    //titleElement.remove();
-    //dateAndEpisodeName.remove();
     divContainer.remove();
+  }
+
+  if (displayResident && !showResidentLocation) {
+    document.querySelector(".class-for-resident-container").remove();
   }
   // Will remove Character Node from the DOM
   if (showCharacter && !showCharacterLocation) {
@@ -167,8 +171,9 @@ function updateMainArea(episode) {
   }
 
   showCharacterLocation = false;
-
+  showResidentLocation = false;
   showCharacter = false;
+  displayResident = false;
 
   divContainer = createAndAppendElement(
     "div",
@@ -189,7 +194,6 @@ function updateMainArea(episode) {
   );
 
   //Render characters
-  //console.log(episode);
   episode.characters.forEach(async (character) => {
     const data = await getCharacterFromEpisode(character);
 
@@ -233,7 +237,7 @@ function updateMainArea(episode) {
       );
       infoOfNewCharacter.innerHTML = `${characterData.species} | ${characterData.status} | ${characterData.gender} | ${characterData.origin.name}`;
 
-      // Create Button for looking for a location
+      // Create Button for looking for a location of the character
       const buttonLocation = createAndAppendElement(
         "button",
         nameAndInfoContainer,
@@ -271,6 +275,156 @@ function updateMainArea(episode) {
               "div",
               imagesContainer
             );
+
+            // add RESIDENT event listener here
+
+            characterContainer.addEventListener("click", async () => {
+              const characterData = await getCharacter(data.id);
+
+              //Created Html structure for New Character
+              newCharacterContainer = createAndAppendElement(
+                "div",
+                main,
+                "new-character-container",
+                "class-for-resident-container"
+              );
+
+              const imageOfNewCharacter = createAndAppendElement(
+                "img",
+                newCharacterContainer,
+                "image-of-new-character"
+              );
+              imageOfNewCharacter.src = characterData.image;
+
+              const nameAndInfoContainer = createAndAppendElement(
+                "div",
+                newCharacterContainer,
+                "name-and-info-container"
+              );
+
+              const nameOfNewCharacter = createAndAppendElement(
+                "h2",
+                nameAndInfoContainer,
+                "name-of-new-character"
+              );
+              nameOfNewCharacter.innerText = characterData.name;
+
+              const infoOfNewCharacter = createAndAppendElement(
+                "h4",
+                nameAndInfoContainer,
+                "info-new-character"
+              );
+              infoOfNewCharacter.innerHTML = `${characterData.species} | ${characterData.status} | ${characterData.gender} | ${characterData.origin.name}`;
+
+              // Create Button for looking for a location
+              const buttonLocation = createAndAppendElement(
+                "button",
+                nameAndInfoContainer,
+                "info-location-button"
+              );
+              buttonLocation.innerHTML = "Go To The Origin Location";
+
+              if (characterData.origin.name !== "unknown") {
+                buttonLocation.addEventListener("click", async () => {
+                  document.querySelector("#new-character-container").remove();
+                  const characterOrigin = await getLocation(
+                    characterData.origin.url
+                  );
+
+                  divContainer = createAndAppendElement(
+                    "div",
+                    main,
+                    undefined,
+                    "episode-title-container"
+                  );
+
+                  titleElement = createAndAppendElement("h2", divContainer);
+                  titleElement.innerText = `${characterOrigin.name}`;
+                  dateAndEpisodeName = createAndAppendElement(
+                    "h3",
+                    divContainer
+                  );
+                  dateAndEpisodeName.innerText = `${characterOrigin.type} | ${characterOrigin.dimension}`;
+                  imagesContainer = createAndAppendElement(
+                    "div",
+                    main,
+                    undefined,
+                    "image-container"
+                  );
+
+                  characterOrigin.residents.forEach(async (resident) => {
+                    const data = await getResidentsListFromLocation(resident);
+
+                    const characterContainer = createAndAppendElement(
+                      "div",
+                      imagesContainer
+                    );
+
+                    // add new event listener here
+
+                    const image = createAndAppendElement(
+                      "img",
+                      characterContainer,
+                      "character-image"
+                    );
+                    image.src = data.image;
+
+                    const nameOfCharacter = createAndAppendElement(
+                      "p",
+                      characterContainer
+                    );
+                    nameOfCharacter.innerHTML = `<strong>${data.name}</strong>`;
+                    const speciesAndStatus = createAndAppendElement(
+                      "p",
+                      characterContainer,
+                      "species-status"
+                    );
+                    speciesAndStatus.innerHTML = `${data.species} | ${data.status}`;
+                  });
+
+                  showResidentLocation = true;
+                });
+              }
+
+              if (characterData.origin.name === "unknown") {
+                buttonLocation.addEventListener("click", () => {
+                  alert("I DON'T HAVE ORIGIN LOCATION");
+                });
+              }
+
+              //Show  the list of episodes in which this particular character appears.
+              const divForCharacter = createAndAppendElement(
+                "div",
+                newCharacterContainer,
+                "div-for-character"
+              );
+              const characterUnorderedEpisodeList = createAndAppendElement(
+                "ul",
+                divForCharacter
+              );
+              
+              characterData.episode.forEach(async (episodeElement) => {
+                const data = await getEpisodesofCharacter(episodeElement);
+                const liEl = createAndAppendElement(
+                  "li",
+                  characterUnorderedEpisodeList
+                );
+                const aEl = createAndAppendElement("a", liEl);
+                aEl.innerHTML = `Episode ${data.id}`;
+                aEl.href = "#";
+                const pEl = createAndAppendElement("p", liEl);
+                pEl.innerHTML = data.episode;
+                aEl.addEventListener("click", () => {
+                  renderEpisode(data.id);
+                });
+              });
+              if (newCharacterContainer) {
+                imagesContainer.remove();
+                divContainer.remove();
+              }
+              displayResident = true;
+            });
+
             const image = createAndAppendElement(
               "img",
               characterContainer,
@@ -311,7 +465,7 @@ function updateMainArea(episode) {
         "ul",
         divForCharacter
       );
-      //console.log(characterData);
+
       characterData.episode.forEach(async (episodeElement) => {
         const data = await getEpisodesofCharacter(episodeElement);
         const liEl = createAndAppendElement(
